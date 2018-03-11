@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Comppiler</title>
+  <meta charset="utf-8"/>
+  <style>
+  * {
+    font-family: monospace;
+  }
+  #input {
+    min-width: 800px;
+    min-height: 400px;
+  }
+  </style>
+  <script src="js/lib/jquery/dist/jquery.js"></script>
+  <script src="js/lib/parser.js"></script>
+  <script src="js/sem.js"></script>
+  <script src="js/gen.js"></script>
+  <script src="js/comp.js"></script>
+  <script src="js/main.js"></script>
+</head>
+<body>
+  <textarea id="input">
+// reverses input words
+int main(int argc, **char argv) {
+  int i = argc-1;
+  while(i > 0) {
+    print(argv[i]);
+    i--;
+  }
+  return argc;
+}
+</textarea>
+  <br/><button id="compile">Compile</button>
+  <pre id="output">Write code and press compile</pre>
+</body>
+</html>

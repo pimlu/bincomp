@@ -1,0 +1,102 @@
+{
+var wsplit = function(group) {
+  return group.map(function(t) {
+    return t[t.length-1];
+  });
+};
+var merge = function(head, tail) {
+  tail.splice(0, 0, head);
+  return tail;
+};
+var lBinOp = function(head, tail) {
+  return tail.reduce(function(prev, next){
+  	return {
+      t: 'bop',
+      op: next[1],
+      l:prev, r:next[3]
+    };
+  }, head);
+};
+}
+
+Program = globals:(_ Global)* _ { return wsplit(globals); }
+
+Global = v:(Decl / FuncD) { return v; }
+
+Decl = type:Type _ expr:Expr ';' {
+  return {t: 'decl', type, expr};
+}
+  / ';' { return {t:'semi'}; }
+FuncD = header: FuncHeader _ body:Stmt
+  { return {t: 'funcd', ...header, body}; }
+Stmt = '{' body:(_ Stmt)* _ '}' { return wsplit(body); }
+  / expr:Expr _ ';' { return {t:'expr', expr}; }
+  / Decl
+  / key:(WhileT / IfT) _ '(' _ cond:Expr _ ')' _ body:Stmt
+    el:( _ ElseT _ Stmt)? {
+      var ret = { t: 'ctrl', cond, body};
+      if(el) ret.el = el[3];
+      return ret;
+    }
+
+FuncHeader = ret:Type _ name:Id  _ args:ParamList
+ { return {ret, name, args}; }
+
+ParamList = '(' _ ')' { return []; }
+  / '(' _ type:Type _ name:Id _ tail:(',' _ Type _ Id _)*  ')'
+    { return merge({type, name},
+      tail.map(([,,type,,name,]) => ({type,name}))); }
+TypeList = '(' _ ')' { return []; }
+  / '(' _ type:Type _ tail:(',' _ Type _)*  ')'
+    { return merge(type,
+      tail.map(([,,type,]) => type)); }
+
+Type = '*' _ type:Type { return {t: 'pointer', type}; }
+ / args:TypeList _ ':' _ ret:Type { return {t: 'funct', args, ret}; }
+ / Id
+
+
+Expr = Assign
+Assign = h:Eq t:(_ ('=') _ Eq)*
+  { return lBinOp(h, t); }
+Eq = h:Cmp t:(_ ('==' / '!=') _ Cmp)*
+  { return lBinOp(h, t); }
+Cmp = h:Sum t:(_ ('<' / '>' / '<=' / '>=') _ Sum)*
+  { return lBinOp(h, t); }
+Sum = h:Term t:(_ ('+' / '-') _ Term)*
+  { return lBinOp(h, t); }
+Term = h:Bound t:(_ ('*' / '/') _ Bound)*
+  { return lBinOp(h, t); }
+Bound = h:Val t:BoundTail*
+  { return t.reduce((prev, next) => (next.l=prev, next), h); }
+
+
+BoundTail = _ op:('++' / '--') { return { t:'uop', op}; }
+  / _ op:('.'/'->') _ r:Val { return { t:'bop', op, r}; }
+  / _ '(' _ r:Expr? _ ')' { return { t:'call', r}; }
+  / _ '[' _ r:Expr _ ']' { return { t:'idx', r}; }
+Val
+  = '(' _ expr:Expr _ ')' { return expr; }
+  / Integer / Id
+
+Integer 'integer'
+  = _ [0-9]+ { return {t:'int', val: parseInt(text(), 10)}; }
+
+Id 'identifier'
+  = !Keyword [A-Za-z_]+ {  return {t:'id', name:text()}; }
+
+Keyword
+  = ( WhileT / ForT / IfT / ElseT / DoT ) ![A-Za-z_]
+WhileT = 'while'
+ForT = 'for'
+IfT = 'if'
+ElseT = 'else'
+DoT = 'do'
+
+_ 'whitespace'
+  = [ \t\n\r]* comment?
+
+comment
+  = '/*' block _
+  / '//' [^\n\r]* _
+block = (!('/*'/'*/') . / '/*' block)* '*/'

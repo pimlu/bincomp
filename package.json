@@ -1,0 +1,23 @@
+{
+  "name": "bincomp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "pegjs --format globals --export-var parser -o js/lib/parser.js lang.peg"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pimlu/bincomp.git"
+  },
+  "author": "pimlu",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/pimlu/bincomp/issues"
+  },
+  "homepage": "https://github.com/pimlu/bincomp#readme",
+  "dependencies": {
+    "pegjs": "^0.10.0"
+  }
+}

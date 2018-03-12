@@ -1,6 +1,6 @@
 function compile(target, sources) {
-  var obj = link(sources.map(object));
-  var generators = {
+  let obj = link(sources.map(object));
+  let generators = {
     dcpu: genDCPU
   };
   return generators[target](obj);

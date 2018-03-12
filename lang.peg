@@ -57,7 +57,9 @@ Type = '*' _ type:Type { return {t: 'pointer', type}; }
  / Id
 
 
-Expr = Assign
+Expr = Commas
+Commas = h:Assign t:(_ (',') _ Assign)*
+  { return lBinOp(h, t); }
 Assign = h:Eq t:(_ ('=') _ Eq)*
   { return lBinOp(h, t); }
 Eq = h:Cmp t:(_ ('==' / '!=') _ Cmp)*
@@ -74,8 +76,8 @@ Bound = h:Val t:BoundTail*
 
 BoundTail = _ op:('++' / '--') { return { t:'uop', op}; }
   / _ op:('.'/'->') _ r:Val { return { t:'bop', op, r}; }
-  / _ '(' _ r:Expr? _ ')' { return { t:'call', r}; }
-  / _ '[' _ r:Expr _ ']' { return { t:'idx', r}; }
+  / _ '(' _ r:Expr? _ ')' { return { t:'bop', op:'call', r}; }
+  / _ '[' _ r:Expr _ ']' { return { t:'bop', op:'idx', r}; }
 Val
   = '(' _ expr:Expr _ ')' { return expr; }
   / Integer / CharLit / StrLit / Id
@@ -89,7 +91,7 @@ CharLit = "'" !"'" c:Char "'" { return {t:'char', c}; }
 StrLit = '"' s:(!'"' Char)* '"' { return {t:'str', str: wsplit(s)}; }
 
 Id 'identifier'
-  = !Keyword [A-Za-z_]+ {  return {t:'id', name:text()}; }
+  = !Keyword [A-Za-z_][A-Za-z_0-9]* {  return {t:'id', name:text()}; }
 
 Keyword
   = ( WhileT / ForT / IfT / ElseT / DoT / RetT ) ![A-Za-z_]

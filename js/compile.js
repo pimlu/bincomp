@@ -1,7 +1,9 @@
 function compile(target, sources) {
-  let obj = link(sources.map(object));
   let generators = {
-    dcpu: genDCPU
+    x86: genX86
   };
-  return generators[target](obj);
+  let gen = generators[target];
+  let build = object.bind(null, gen.meta)
+  let obj = link(sources.map(build));
+  return gen(obj);
 }

@@ -24,10 +24,10 @@ function parseFunc(func, globals, syms) {
 
 }
 
-function object(source) {
+function object(meta, source) {
   if(typeof source != 'string') return source;
   let tree = parser.parse(source);
-  let globals = {}, syms = {};
+  let globals = meta.globals(), syms = meta.syms();
   tree.forEach(gbl => {
     if(gbl.t === 'decl') {
       let type = gbl.type;
@@ -39,7 +39,7 @@ function object(source) {
     } else if (gbl.t === 'funcd') {
       parseFunc(gbl, globals, syms);
     }
-  })
+  });
 
   return [globals, syms];
 }
